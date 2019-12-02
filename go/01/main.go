@@ -7,11 +7,22 @@ import (
 	"strconv"
 )
 
-func getFuelRequirements(mass int) int { return mass/3 - 2 }
+const InputFile = "input.txt"
 
-func main() {
+func getFuelRequirement(mass int) int { return mass/3 - 2 }
+
+func getFuelRequirementReal(mass int) int {
+	fuel := 0
+	for mass > 0 {
+		mass = getFuelRequirement(mass)
+		fuel += mass
+	}
+	return fuel
+}
+
+func calcFuelTotal(calc func(int) int) int {
 	total := 0
-	f, err := os.Open("input.txt")
+	f, err := os.Open(InputFile)
 
 	if err != nil {
 		panic(err)
@@ -25,9 +36,12 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		total += getFuelRequirements(m)
+		total += calc(m)
 	}
+	return total
+}
 
-	fmt.Println(total)
-	
+func main() {
+	fmt.Println("Part 1: ", calcFuelTotal(getFuelRequirement))
+	fmt.Println("Part 2: ", calcFuelTotal(getFuelRequirementReal))
 }
