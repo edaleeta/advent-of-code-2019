@@ -44,4 +44,40 @@ func calcFuelTotal(calc func(int) int) int {
 func main() {
 	fmt.Println("Part 1: ", calcFuelTotal(getFuelRequirement))
 	fmt.Println("Part 2: ", calcFuelTotal(getFuelRequirementReal))
+
+	gogi := bubu{
+		name:         "Gogi",
+		age:          6,
+		favoriteFood: "cheese",
+		sound:        screechSound,
+	}
+
+	fmt.Printf("%s\n", gogi.String())
+	gogi.HaveBirthday()
+}
+
+type sound string
+
+const (
+	woofSound    sound = "woof"
+	meowSound    sound = "meow"
+	screechSound sound = "skreeeech"
+)
+
+type bubu struct {
+	name         string
+	age          int
+	favoriteFood string
+	sound        sound
+}
+
+func (b bubu) String() string {
+	return fmt.Sprintf("%s says %s", b.name, b.sound)
+}
+
+func (b *bubu) HaveBirthday() int {
+	b.age += 1
+	fmt.Println(b.name, " got older!")
+	fmt.Println(b.name, "is now", b.age, "!")
+	return b.age
 }
