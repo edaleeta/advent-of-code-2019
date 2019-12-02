@@ -16,19 +16,18 @@ from fuel_requirements import FILE
 # spacecraft when also taking into account the mass of the added fuel?
 
 
-def get_fuel_requirements_for_fuel(fuel_mass, total_fuel=0):
+def get_fuel_requirements_real(fuel_mass, total_fuel=0):
     fuel = get_fuel_requirements(fuel_mass)
     if fuel <= 0:
         return total_fuel
-    return get_fuel_requirements_for_fuel(fuel, fuel + total_fuel)
+    return get_fuel_requirements_real(fuel, fuel + total_fuel)
 
 
 def get_total_fuel_requirements(filename):
     total = 0
     with open(filename) as masses:
         for mass in masses:
-            fuel_requirements = get_fuel_requirements(int(mass))
-            total += fuel_requirements + get_fuel_requirements_for_fuel(fuel_requirements)
+            total += get_fuel_requirements_real(int(mass))
     return total
 
 
