@@ -1,104 +1,92 @@
 TEST_INPUT = 'test_input.txt'
 INPUT = 'input.txt'
 
+WANTED_OUTPUT = 19690720
 
-class IntcodeProgram:
+
+class IntcodeMachine:
     def __init__(self, text):
         self.opcodes = self.parse_text_to_opcodes(text)
+        self.opcodes_orig = self.opcodes[:]
+        self.cursor = 0
 
     @staticmethod
     def parse_text_to_opcodes(text):
         return [int(opcode) for opcode in text.split(',')]
 
-    def prep_program(self):
-        self.opcodes[1] = 12
-        self.opcodes[2] = 2
+    def prep_program(self, noun=12, verb=2):
+        self.opcodes[1] = noun
+        self.opcodes[2] = verb
+
+    def reset_program(self):
+        self.opcodes = self.opcodes_orig[:]
+        self.cursor = 0
+
+    def add(self):
+        input_loc_a, input_loc_b, overwrite_loc = self.opcodes[self.cursor+1:self.cursor+4]
+        overwrite_value = self.get_value_at_loc(input_loc_a) + self.get_value_at_loc(input_loc_b)
+        self.overwrite_value_at_loc(overwrite_value, overwrite_loc)
+        self.cursor += 4
+
+    def multiply(self):
+        input_loc_a, input_loc_b, overwrite_loc = self.opcodes[self.cursor+1:self.cursor+4]
+        overwrite_value = self.get_value_at_loc(input_loc_a) * self.get_value_at_loc(input_loc_b)
+        self.overwrite_value_at_loc(overwrite_value, overwrite_loc)
+        self.cursor += 4
 
     def run_program(self):
-        cursor = 0
+        while self.cursor < self.get_program_length():
+            opcode = self.get_value_at_loc(self.cursor)
 
-        while cursor < self.get_program_length():
-            current_chunk_values = self.opcodes[cursor:cursor+Chunk.CHUNK_SIZE]
-
-            current_chunk = Chunk(current_chunk_values, self)
-            signal = current_chunk.get_signal()
-            if signal.code == Signal.HALT_CODE:
-                # Halt!
-                print('Halt code received; shutting down program.')
+            if opcode == 1:
+                self.add()
+            elif opcode == 2:
+                self.multiply()
+            elif opcode == 99:
                 break
-            elif signal.code in Signal.SUCCESS_CODES:
-                self.overwrite_value_at_loc(signal.value, signal.overwrite_location)
-
-            cursor += Chunk.CHUNK_SIZE
-
-        print('Finished running program.')
-        print('Opcode values are: ')
-        print(self.opcodes)
+            else:
+                raise Exception("Unrecognized opcode: ", opcode)
 
     def overwrite_value_at_loc(self, value, location):
         self.opcodes[location] = value
 
-    def get_value_at_location(self, loc):
+    def get_value_at_loc(self, loc):
         return self.opcodes[loc]
 
     def get_program_length(self):
         return len(self.opcodes or [])
 
 
-class Chunk:
-    CHUNK_SIZE = 4
-
-    def __init__(self, chunk_values, program):
-        self.chunk_values = chunk_values[:4]
-        if len(self.chunk_values) != self.CHUNK_SIZE:
-            Exception('Invalid chunk length.')
-        self.program = program
-
-    def get_signal(self):
-        chunk = self.chunk_values
-        signal_chunk, value, overwrite_loc = chunk[0], None, chunk[3]
-
-        if signal_chunk == Signal.HALT_CODE:
-            return Signal(signal_chunk)
-
-        if signal_chunk in Signal.SUCCESS_CODES:
-            input_a_location, input_b_location = chunk[1:3]
-            x = self.program.get_value_at_location(input_a_location)
-            y = self.program.get_value_at_location(input_b_location)
-            rv = None
-
-            if signal_chunk == Signal.ADD_CODE:
-                rv = x + y
-            elif signal_chunk == Signal.MULT_CODE:
-                rv = x * y
-
-            return Signal(signal_chunk, rv, overwrite_loc)
-
-        raise Exception('Unexpected signal chunk {} received.'.format(signal_chunk))
-
-
-class Signal:
-
-    ADD_CODE = 1
-    MULT_CODE = 2
-    HALT_CODE = 99
-    SUCCESS_CODES = [ADD_CODE, MULT_CODE]
-
-    def __init__(self, code, value=None, overwrite_location=None):
-        self.code = code
-        self.value = value
-        self.overwrite_location = overwrite_location
-
-
-def get_solution():
+def get_solutions():
     with open('input.txt') as file:
         text = file.read().strip()
 
-    program = IntcodeProgram(text)
+    program = IntcodeMachine(text)
     program.prep_program()
     program.run_program()
 
-    print('Value at position 0: ', program.get_value_at_location(0))
+    print('Part 1. Value at position 0: ', program.get_value_at_loc(0))
+
+    solution_noun, solution_verb = None, None
+    for noun in range(0, 100):
+        for verb in range(0, 100):
+            program.reset_program()
+            program.prep_program(noun, verb)
+            try:
+                program.run_program()
+                if program.get_value_at_loc(0) == WANTED_OUTPUT:
+                    solution_noun, solution_verb = noun, verb
+                    break
+            except Exception as e:
+                print(e)
+                print("Program failed with test inputs noun: {}, verb: {}".format(noun, verb))
+                continue
+        if solution_noun is not None and solution_verb is not None:
+            break
+
+    print('Output {} found using noun: {} and verb: {}'.format(WANTED_OUTPUT, solution_noun, solution_verb))
+    print('Part 2 answer: ', 100 * solution_noun + solution_verb)
 
 
-get_solution()
+get_solutions()
+
