@@ -15,31 +15,56 @@ def parse_input(input_text):
     return input_values
 
 
-def is_valid_password(password):
+def is_valid_password(password, is_part_two=False):
     digits = [digit for digit in password]
-    has_adjacent_dupe = False
+    adjacent_dupe_char = None
+    adjacent_group = []
+    adjacent_groups = []
     ptr = 0
 
     while ptr < (len(digits)-1):
         a, b = digits[ptr:ptr+2]
-        if a == b and not has_adjacent_dupe:
-            has_adjacent_dupe = True
+
         if not b >= a:
             return False
+
+        if a == b:
+            if adjacent_dupe_char != a:
+                if len(adjacent_group) > 0:
+                    adjacent_groups.append(adjacent_group)
+                adjacent_dupe_char = a
+                adjacent_group = [a, b]
+            else:
+                adjacent_group.append(a)
+        else:
+            if len(adjacent_group) > 0:
+                adjacent_groups.append(adjacent_group)
+                adjacent_group = []
+
         ptr += 1
 
-    return has_adjacent_dupe
+    if len(adjacent_group) > 0:
+        adjacent_groups.append(adjacent_group)
+
+    if is_part_two:
+        return any([len(group) == 2 for group in adjacent_groups])
+
+    return bool(adjacent_dupe_char)
 
 
 def get_solution():
     min_value, max_value = parse_input(PUZZLE_INPUT)
     valid_password_count = 0
-    valid_passwords = []
     for i in range(min_value, max_value+1):
         if is_valid_password(str(i)):
             valid_password_count += 1
-            valid_passwords.append(i)
-    print("Number of valid passwords in range: ", valid_password_count)
+    print("Part 1: Number of valid passwords in range: ", valid_password_count)
+
+    valid_password_count = 0
+    for i in range(min_value, max_value+1):
+        if is_valid_password(str(i), is_part_two=True):
+            valid_password_count += 1
+    print("Part 2: Number of valid passwords in range: ", valid_password_count)
 
 
 get_solution()
