@@ -88,5 +88,6 @@ def get_solutions():
     print('Part 2 answer: ', 100 * solution_noun + solution_verb)
 
 
-get_solutions()
+if __name__ == '__main__':
+    get_solutions()
 
