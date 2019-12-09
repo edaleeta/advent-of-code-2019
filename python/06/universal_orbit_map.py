@@ -1,5 +1,6 @@
 INPUT = 'input.txt'
 TEST_INPUT = 'test_input.txt'
+TEST_INPUT_PART_TWO = 'text_input_part_two.txt'
 CENTER_ID = 'COM'
 
 
@@ -11,8 +12,9 @@ class SpaceObject:
         self.primary = primary
         self.satellites = satellites or []
 
-    # def __repr__(self):
-    #     return '<SpaceObject id: {}, primary: {}, satellites: {}>'.format(self.id_, self.primary, self.satellites)
+    def __repr__(self):
+        # return '<SpaceObject id: {}, primary: {}, satellites: {}>'.format(self.id_, self.primary, self.satellites)
+        return '<SpaceObject id: {}>'.format(self.id_)
 
     def __eq__(self, other):
         if not isinstance(other, SpaceObject):
@@ -87,17 +89,58 @@ class OrbitMap:
 
         return total_orbit_count
 
+    def get_distance_between_space_objects(self, start_id, end_id):
+        if start_id == end_id:
+            raise Exception('Attempting to get the distance between the same space object.')
 
-def get_solution():
+        checked_space_object_ids = set()
+        objects_to_visit = [(self.get_space_object_from_orbit_by_id(start_id, self.center), -1)]
+
+        while objects_to_visit:
+            current_space_object, distance_from_start = objects_to_visit.pop()
+            if current_space_object is None:
+                raise Exception('Visiting None space object. Oops!')
+
+            checked_space_object_ids.add(current_space_object.id_)
+
+            next_satellites = [space_object for space_object in current_space_object.satellites if space_object.id_ not in checked_space_object_ids]
+            next_primary = [current_space_object.primary] if current_space_object.primary and current_space_object.primary.id_ not in checked_space_object_ids else []
+            next_objects_to_visit = next_satellites + next_primary
+            next_objects_to_visit_ids = [space_object.id_ for space_object in next_objects_to_visit]
+
+            if end_id in next_objects_to_visit_ids:
+                return distance_from_start
+
+            for id_ in next_objects_to_visit_ids:
+                checked_space_object_ids.add(id_)
+
+            objects_to_visit = objects_to_visit + [(space_object, distance_from_start + 1) for space_object in next_objects_to_visit]
+
+        raise Exception('Could not find path between space objects {} and {}.'.format(start_id, end_id))
+
+
+def create_orbit_map_from_file(filename):
     orbit_map = OrbitMap()
-
-    with open(INPUT) as orbit_codes:
+    with open(filename) as orbit_codes:
         for orbit_code in orbit_codes:
             orbit_code = orbit_code.strip()
             primary_id, satellite_id = orbit_code.split(')')
             orbit_map.create_orbit(primary_id, satellite_id)
+    return orbit_map
 
+
+def get_part_one_solution():
+    orbit_map = create_orbit_map_from_file(INPUT)
     print(orbit_map.count_total_orbits())
 
 
-get_solution()
+def get_part_two_solution():
+    orbit_map = create_orbit_map_from_file(INPUT)
+    derp = orbit_map.get_distance_between_space_objects('YOU', 'SAN')
+    print(derp)
+
+
+get_part_one_solution()
+get_part_two_solution()
+
+
