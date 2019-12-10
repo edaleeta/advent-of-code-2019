@@ -1,5 +1,4 @@
 import importlib
-from functools import reduce
 
 intcode = importlib.import_module('python.02.intcode', 'IntcodeMachine')
 IntcodeMachine = getattr(intcode, 'IntcodeMachine')
@@ -139,5 +138,5 @@ def get_solution():
     m.run_program()
     print("Part 2 output: ", m.outputs)
 
-
-get_solution()
+if __name__ == '__main__':
+    get_solution()
