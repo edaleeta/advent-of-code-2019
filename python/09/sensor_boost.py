@@ -93,5 +93,11 @@ def get_solution():
     m.run_program()
     print("Part 1 solution:", m.outputs)
 
+    with open(INPUT) as file:
+        text = file.read().strip()
+    m = IntcodeMachineDayNine(text, 2)
+    m.run_program()
+    print("Part 2 solution:", m.outputs)
+
 
 get_solution()
