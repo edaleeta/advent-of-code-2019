@@ -30,6 +30,26 @@ class SpaceImage:
     def get_digit_counts_for_layers(self, target_digit):
         return [self.get_digit_count_of_layer(layer, target_digit) for layer in self.layers]
 
+    def get_output_color_for_position(self, i):
+        rv = None
+        for layer in self.layers:
+            rv = layer[i]
+            if rv in (0, 1):
+                return rv
+        return rv
+
+    def render_image(self):
+        output = []
+        for i in range(self.height * self.width):
+            output.append(self.get_output_color_for_position(i))
+        return output
+
+    def pretty_print(self):
+        image_output = self.render_image()
+        for i in range(0, len(image_output), self.width):
+            pretty_output = ''.join(['   ' if output == 0 else ' X ' for output in image_output[i:i+self.width]])
+            print(pretty_output)
+
 
 def get_index_of_min_value(lst):
     min_i, min_value = None, None
@@ -52,6 +72,8 @@ def get_solution():
     solution = num_ones * num_twos
 
     print('Part 1 solution:', solution)
+    print('Part 2 solution:\n')
+    img.pretty_print()
 
 
 get_solution()
