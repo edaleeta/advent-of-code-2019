@@ -97,32 +97,38 @@ class IntcodeMachineDayFive(IntcodeMachine):
             self.overwrite_value_at_loc(0, overwrite_loc)
         self.cursor += 4
 
+    def get_handler_for_opcode(self, opcode):
+        if opcode == 1:
+            return self.add
+        elif opcode == 2:
+            return self.multiply
+        elif opcode == 3:
+            return self.save_input_value_to_position
+        elif opcode == 4:
+            return self.get_output_from_position
+        elif opcode == 5:
+            return self.jump_if_true
+        elif opcode == 6:
+            return self.jump_if_false
+        elif opcode == 7:
+            return self.less_than
+        elif opcode == 8:
+            return self.equals
+        elif opcode == 99:
+            return None
+        else:
+            raise Exception("Unrecognized opcode: ", self.curr_opcode)
+
     def run_program(self):
         while self.cursor < self.get_program_length():
             modes_and_opcode = str(self.get_value_at_loc(self.cursor))
             self.curr_opcode = int(modes_and_opcode[-2:])
             self.curr_param_modes = [int(mode) for mode in modes_and_opcode[:-2]]
 
-            if self.curr_opcode == 1:
-                self.add()
-            elif self.curr_opcode == 2:
-                self.multiply()
-            elif self.curr_opcode == 3:
-                self.save_input_value_to_position()
-            elif self.curr_opcode == 4:
-                self.get_output_from_position()
-            elif self.curr_opcode == 5:
-                self.jump_if_true()
-            elif self.curr_opcode == 6:
-                self.jump_if_false()
-            elif self.curr_opcode == 7:
-                self.less_than()
-            elif self.curr_opcode == 8:
-                self.equals()
-            elif self.curr_opcode == 99:
+            handler = self.get_handler_for_opcode(self.curr_opcode)
+            if not handler:
                 break
-            else:
-                raise Exception("Unrecognized opcode: ", self.curr_opcode)
+            handler()
 
 
 def get_solution():
@@ -137,6 +143,7 @@ def get_solution():
     m = IntcodeMachineDayFive(text, 5)
     m.run_program()
     print("Part 2 output: ", m.outputs)
+
 
 if __name__ == '__main__':
     get_solution()
