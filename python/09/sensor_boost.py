@@ -100,4 +100,5 @@ def get_solution():
     print("Part 2 solution:", m.outputs)
 
 
-get_solution()
+if __name__ == '__main__':
+    get_solution()
