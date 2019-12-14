@@ -127,7 +127,53 @@ class PaintingRobot:
                 self.handle_brain_output()
 
 
-def get_solution():
+def build_output_base(height, width):
+    num_cols = width + 1
+    num_rows = height + 1
+    rv = []
+    for y in range(num_rows):
+        rv.append([Color.BLACK] * num_cols)
+    return rv
+
+
+def map_coord_to_output_index(min_x, max_y, coord):
+    x, y = coord
+    output_x = x - min_x
+    output_y = max_y - y
+    return output_x, output_y
+
+
+def write_hull_coord_to_output(coord, color, base, min_x, max_y):
+    output_x, output_y = map_coord_to_output_index(min_x, max_y, coord)
+    base[output_y][output_x] = color
+
+
+def create_hull_rep(hull):
+    x_vals = [x for x, _ in hull]
+    y_vals = [y for _, y in hull]
+    min_x, max_x = min(x_vals), max(x_vals)
+    min_y, max_y = min(y_vals), max(y_vals)
+    width = abs(max_x - min_x)
+    height = abs(max_y - min_y)
+    output = build_output_base(height, width)
+    for coord, color in hull.items():
+        write_hull_coord_to_output(coord, color, output, min_x, max_y)
+    return output
+
+
+def print_emergency_hull(hull):
+    hull_rep = create_hull_rep(hull)
+    for line in hull_rep:
+        output = []
+        for color in line:
+            if color == Color.BLACK:
+                output.append('   ')
+            else:
+                output.append(' # ')
+        print(''.join(output))
+
+
+def get_solution_part_one():
     with open(INPUT) as file:
         text = file.read().strip()
 
@@ -138,4 +184,18 @@ def get_solution():
     print("Part 1. Number of panels painted at least once: ", len(emergency_hull))
 
 
-get_solution()
+def get_solution_part_two():
+    with open(INPUT) as file:
+        text = file.read().strip()
+
+    # Starting panel for robot is now white
+    emergency_hull = {(0, 0): Color.WHITE}
+    paintbot = PaintingRobot(hull=emergency_hull)
+    paintbot.initialize_brain(text)
+    paintbot.start_painting()
+    print("Part 2:")
+    print_emergency_hull(emergency_hull)
+
+
+get_solution_part_one()
+get_solution_part_two()
